@@ -6,7 +6,14 @@
 <title>Chord Roulette: random guitar chords and their inversions</title>
 <meta name="description" content="Tap the pick for a random guitar chord: its notes, formula, every inversion, guitar shapes and the keys it belongs to.">
 <meta name="theme-color" content="#1B110C">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 110'%3E%3Cpath d='M50 106C40 106 6 62 4 38 2 14 22 2 50 2s48 12 46 36c-2 24-36 68-46 68z' fill='%23E9AE45'/%3E%3C/svg%3E">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Chords">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@500;600;700&display=swap">
@@ -46,7 +53,7 @@ button { cursor: pointer; }
 /* ---------- top bar ---------- */
 .top {
   display: flex; align-items: center; justify-content: space-between;
-  max-width: 820px; margin: 0 auto; padding: 14px 20px 0;
+  max-width: 820px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top)) 20px 0;
 }
 .wordmark { font: 600 21px/1 var(--display); letter-spacing: .02em; color: var(--pearl-2); }
 .ghost {

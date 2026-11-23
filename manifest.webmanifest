@@ -1,0 +1,16 @@
+{
+  "name": "Chord Roulette",
+  "short_name": "Chords",
+  "description": "Tap the pick for a random guitar chord, with its notes, formula, every inversion and guitar shapes.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1B110C",
+  "theme_color": "#1B110C",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
