@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chord Roulette: random guitar chords and their inversions</title>
+<meta name="description" content="Tap the pick for a random guitar chord: its notes, formula, every inversion, guitar shapes and the keys it belongs to.">
+<meta name="theme-color" content="#1B110C">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 110'%3E%3Cpath d='M50 106C40 106 6 62 4 38 2 14 22 2 50 2s48 12 46 36c-2 24-36 68-46 68z' fill='%23E9AE45'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&text=%E2%99%AD%E2%99%AF%E2%99%AE&display=swap">
+<style>
+:root {
+  --bg: #1B110C;
+  --board: #261913;
+  --board-2: #301F17;
+  --line: #44301F;
+  --pearl: #F3EAD8;
+  --pearl-2: #CDBDA6;
+  --nickel: #AEB6BC;
+  --cherry: #E5604B;
+  --amber: #E9AE45;
+  --abalone: #66C6B1;
+  --ink: #1B110C;
+  --display: 'Barlow Condensed', 'Noto Music', 'Roboto Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --body: 'Atkinson Hyperlegible', 'Noto Music', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background-color: var(--bg);
+  background-image: repeating-linear-gradient(90deg, rgba(255, 220, 180, .018) 0 1px, transparent 1px 5px, rgba(0, 0, 0, .05) 5px 7px, transparent 7px 13px);
+  color: var(--pearl);
+  font: 17px/1.55 var(--body);
+  min-height: 100vh;
+}
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- top bar ---------- */
+.top {
+  display: flex; align-items: center; justify-content: space-between;
+  max-width: 820px; margin: 0 auto; padding: 14px 20px 0;
+}
+.wordmark { font: 600 21px/1 var(--display); letter-spacing: .02em; color: var(--pearl-2); }
+.ghost {
+  background: none; border: 1px solid var(--line); border-radius: 999px;
+  padding: 6px 14px; color: var(--pearl-2); font-size: 15px;
+}
+.ghost:hover { border-color: var(--pearl-2); color: var(--pearl); }
+
+.wrap { max-width: 820px; margin: 0 auto; padding: 0 20px 190px; }
+
+/* ---------- hero / chord symbol ---------- */
+.hero { padding-top: 28px; min-height: 300px; }
+.sym {
+  font-family: var(--display); font-weight: 700; font-stretch: condensed;
+  font-size: clamp(104px, 31vw, 196px); line-height: .92;
+  margin: 0; letter-spacing: -.005em; color: var(--pearl);
+  white-space: nowrap;
+}
+.sym-a { font-size: .52em; vertical-align: .78em; margin-left: .02em; font-weight: 600; }
+.sym-q { font-size: .45em; vertical-align: .86em; margin-left: .04em; font-weight: 600; letter-spacing: .01em; }
+.sym-s { font-size: .45em; font-weight: 500; color: var(--pearl-2); margin-left: .04em; }
+.sym.spinning { color: var(--pearl-2); }
+.sym.fit-1 { font-size: clamp(84px, 24vw, 170px); }
+.sym.fit-2 { font-size: clamp(70px, 19vw, 150px); }
+.say { font-size: 22px; margin: 14px 0 4px; }
+.kind { color: var(--pearl-2); margin: 0; max-width: 60ch; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--board-2); border: 1px solid var(--line); border-radius: 999px;
+  padding: 9px 16px 9px 13px; font-size: 16px;
+}
+.btn svg { width: 18px; height: 18px; flex: none; }
+.btn:hover { border-color: var(--pearl-2); }
+.btn.icon-only { padding: 9px 12px; }
+.btn.on-amber { background: var(--amber); color: var(--ink); border-color: var(--amber); font-weight: 700; }
+
+.empty h1 { font: 700 clamp(72px, 22vw, 150px)/.92 var(--display); margin: 0; }
+.empty p { font-size: 19px; color: var(--pearl-2); max-width: 34ch; margin: 18px 0 0; }
+.empty .kbd { display: none; font-size: 15px; margin-top: 10px; }
+@media (hover: hover) { .empty .kbd { display: block; } }
+kbd { font: inherit; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; }
+
+/* ---------- sections, divided by a "fret wire" ---------- */
+.sec { margin-top: 46px; padding-top: 26px; position: relative; }
+.sec::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; border-radius: 2px;
+  background: linear-gradient(#7d868c, #dfe5e8 45%, #6c7479);
+  opacity: .55;
+}
+.sec > h2 { font: 600 30px/1.1 var(--display); margin: 0 0 16px; letter-spacing: .01em; }
+.sec h3 { font: 600 21px/1.2 var(--display); margin: 22px 0 8px; color: var(--pearl); letter-spacing: .01em; }
+.muted { color: var(--pearl-2); }
+p { max-width: 64ch; }
+
+/* interval colour families */
+.f-root { --c: var(--cherry); }
+.f-third { --c: var(--pearl); }
+.f-fifth { --c: var(--nickel); }
+.f-seventh { --c: var(--amber); }
+.f-color { --c: var(--abalone); }
+
+.dot {
+  display: inline-grid; place-items: center; flex: none;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--c); color: var(--ink);
+  font: 700 15px/1 var(--display);
+}
+
+/* ---------- tones list ---------- */
+.tones { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.tones li {
+  display: grid; grid-template-columns: 34px 78px 1fr auto; align-items: center; gap: 14px;
+  padding: 8px 0; border-bottom: 1px solid var(--line);
+}
+.tones li:last-child { border-bottom: 0; }
+.tn { font: 700 30px/1 var(--display); }
+.enh { display: block; font: 400 13px/1.2 var(--body); color: var(--pearl-2); margin-top: 3px; }
+.ti { color: var(--pearl); }
+.ts { color: var(--pearl-2); font-size: 15px; text-align: right; }
+.opt-tag { color: var(--pearl-2); font-size: 14px; display: block; }
+.formula { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 20px; margin-top: 18px; }
+.formula .big { font: 600 26px/1 var(--display); letter-spacing: .06em; }
+.chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; }
+.chain .n { font: 700 24px/1 var(--display); }
+.chain .i {
+  font: 600 14px/1 var(--display); color: var(--pearl-2);
+  border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px;
+}
+.note-text { color: var(--pearl-2); font-size: 15.5px; margin: 12px 0 0; }
+
+/* ---------- inversions ---------- */
+.tabs {
+  display: flex; gap: 4px; padding: 4px; margin: 0 0 22px;
+  background: var(--board); border: 1px solid var(--line); border-radius: 14px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex: 1 0 auto; min-width: 64px; border: 0; border-radius: 10px; background: none;
+  padding: 9px 12px; font: 600 19px/1 var(--display); color: var(--pearl-2);
+}
+.tab[aria-selected="true"] { background: var(--amber); color: var(--ink); }
+.inv-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 24px; }
+.sec .sym.sym-sm { font: 700 clamp(64px, 17vw, 100px)/.92 var(--display); margin: 0; color: var(--pearl); }
+.sec .sym.sym-sm.fit-1 { font-size: clamp(54px, 14vw, 88px); }
+.sec .sym.sym-sm.fit-2 { font-size: clamp(44px, 11.5vw, 76px); }
+.inv-name { margin: 8px 0 0; font-size: 18px; }
+.figure { display: inline-flex; align-items: center; gap: 10px; color: var(--pearl-2); font-size: 15px; }
+.figure .fig { display: inline-flex; flex-direction: column; align-items: center; font: 700 20px/.95 var(--display); color: var(--pearl); }
+.piano-wrap { margin: 18px 0 4px; max-width: 420px; }
+.piano { width: 100%; height: auto; display: block; }
+.piano .wk { fill: #EDE4D2; stroke: #8a7a66; stroke-width: .6; }
+.piano .bk { fill: #20140e; stroke: #000; stroke-width: .4; }
+.piano .on { fill: var(--c); }
+.piano text { font: 700 7.5px var(--display); fill: var(--ink); text-anchor: middle; }
+.cap { font-size: 14px; color: var(--pearl-2); margin: 6px 0 0; }
+
+.guitar-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 26px; }
+.guitar-head h3 { margin: 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.seg button { border: 0; background: none; border-radius: 999px; padding: 5px 12px; font-size: 14.5px; color: var(--pearl-2); }
+.seg button[aria-pressed="true"] { background: var(--board-2); color: var(--pearl); box-shadow: inset 0 0 0 1px var(--pearl-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--pearl-2); }
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 11px; height: 11px; border-radius: 50%; background: var(--c); display: inline-block; }
+
+.shapes {
+  display: flex; gap: 12px; overflow-x: auto; padding: 14px 2px 10px; margin: 0 -2px;
+  scroll-snap-type: x proximity;
+}
+.shape {
+  flex: none; width: 148px; scroll-snap-align: start;
+  background: var(--board); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 8px 10px; text-align: center;
+}
+.shape:hover { border-color: var(--pearl-2); }
+.shape svg.fb { width: 100%; height: auto; display: block; }
+.shape .tab-line { font: 600 17px/1.2 var(--display); letter-spacing: .12em; margin-top: 4px; }
+.shape .meta { font-size: 13px; color: var(--pearl-2); min-height: 1.3em; }
+.shape .play { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--amber); margin-top: 4px; }
+.shape .play svg { width: 14px; height: 14px; }
+.fb .board { fill: #2E1D14; }
+.fb .fret { stroke: var(--nickel); stroke-width: 1.1; opacity: .75; }
+.fb .nut { stroke: var(--pearl); stroke-width: 4; stroke-linecap: round; }
+.fb .str { stroke: #d9d2c4; }
+.fb .inlay { fill: var(--pearl); opacity: .13; }
+.fb .mk { font: 600 11px var(--display); fill: var(--pearl-2); text-anchor: middle; }
+.fb .open { fill: #2E1D14; stroke: var(--c); stroke-width: 1.6; }
+.fb .open-t { font-family: var(--display); font-weight: 700; fill: var(--c); text-anchor: middle; dominant-baseline: central; }
+.fb .frno { font: 600 11px var(--display); fill: var(--pearl-2); text-anchor: end; }
+.fb .nd { fill: var(--c); }
+.fb .bass-ring { fill: none; stroke: var(--pearl); stroke-width: 1.6; }
+.fb .nd-t { font: 700 9px var(--display); fill: var(--ink); text-anchor: middle; dominant-baseline: central; }
+.fb .barre { fill: var(--pearl-2); opacity: .28; }
+.no-shape { color: var(--pearl-2); background: var(--board); border: 1px dashed var(--line); border-radius: 12px; padding: 14px 16px; margin-top: 14px; }
+
+/* ---------- keys, same notes, recent ---------- */
+.keylist { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.keylist li { background: var(--board); border: 1px solid var(--line); border-radius: 10px; padding: 6px 11px; font-size: 15.5px; }
+.keylist b { font: 700 18px/1 var(--display); color: var(--amber); margin-right: 4px; letter-spacing: .02em; }
+.more { margin-top: 10px; background: none; border: 0; color: var(--amber); padding: 4px 0; text-decoration: underline; text-underline-offset: 3px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.chip {
+  background: var(--board-2); border: 1px solid var(--line); border-radius: 999px;
+  padding: 6px 14px; font: 600 20px/1.1 var(--display); letter-spacing: .01em;
+}
+.chip:hover { border-color: var(--amber); color: var(--amber); }
+
+/* ---------- pick button ---------- */
+.dock {
+  position: fixed; left: 0; right: 0; bottom: 0; height: 150px; pointer-events: none;
+  background: linear-gradient(rgba(27, 17, 12, 0), rgba(27, 17, 12, .92) 60%);
+}
+.pick {
+  position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom));
+  width: 118px; height: 130px; margin-left: -59px; padding: 0; border: 0; background: none;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .55));
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .15s ease;
+}
+.pick svg { width: 100%; height: 100%; display: block; }
+.pick-label {
+  position: absolute; left: 0; right: 0; top: 30%;
+  font: 700 21px/.95 var(--display); color: #2A1205; text-align: center; letter-spacing: .01em;
+}
+.pick:hover { transform: translateY(-3px) rotate(-3deg); }
+.pick:active { transform: scale(.96); }
+.pick:focus-visible { outline-offset: -2px; border-radius: 40%; }
+.pick.flick { animation: flick .42s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes flick {
+  0% { transform: rotate(0) translateY(0); }
+  35% { transform: rotate(-18deg) translateY(-12px); }
+  100% { transform: rotate(0) translateY(0); }
+}
+.hero.landed .sym { animation: land .38s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes land { from { transform: translateY(8px) scale(.97); opacity: .4; } to { transform: none; opacity: 1; } }
+
+/* ---------- dialog & toast ---------- */
+dialog {
+  border: 1px solid var(--line); border-radius: 18px; padding: 0;
+  background: var(--board); color: var(--pearl); width: min(440px, calc(100vw - 28px));
+}
+dialog::backdrop { background: rgba(10, 6, 4, .7); }
+.opts { padding: 22px 22px 20px; }
+.opts h2 { font: 600 30px/1 var(--display); margin: 0 0 14px; }
+fieldset { border: 0; padding: 0; margin: 0; }
+legend { color: var(--pearl-2); font-size: 15px; margin-bottom: 6px; }
+.check { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+.check input { width: 20px; height: 20px; accent-color: var(--amber); flex: none; }
+.check small { display: block; color: var(--pearl-2); font-size: 14px; line-height: 1.35; }
+.field { display: grid; gap: 6px; margin: 16px 0 8px; color: var(--pearl-2); font-size: 15px; }
+.field select { background: var(--board-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; color: var(--pearl); font-size: 17px; }
+.hint { color: var(--cherry); font-size: 15px; margin: 6px 0 0; }
+.primary { margin-top: 16px; width: 100%; background: var(--amber); color: var(--ink); border: 0; border-radius: 12px; padding: 12px; font-weight: 700; }
+.toast {
+  position: fixed; left: 50%; bottom: 160px; transform: translate(-50%, 20px);
+  background: var(--pearl); color: var(--ink); padding: 8px 16px; border-radius: 999px; font-size: 15px;
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (min-width: 760px) {
+  .wrap { padding-bottom: 170px; }
+  .pick { left: auto; right: 28px; bottom: 24px; margin-left: 0; width: 132px; height: 146px; }
+  .pick-label { font-size: 23px; }
+  .tones li { grid-template-columns: 34px 90px 1fr auto; }
+}
+@media (min-width: 1200px) {
+  .pick { right: calc(50vw - 600px); bottom: 40px; }
+  .dock { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="wordmark">Chord Roulette</span>
+  <button type="button" class="ghost" data-action="options" aria-haspopup="dialog">Options</button>
+</header>
+
+<main id="main" class="wrap">
+  <section class="hero" id="hero" aria-live="polite"></section>
+  <div id="details"></div>
+</main>
+
+<div class="dock" aria-hidden="true"></div>
+<button type="button" class="pick" id="pick" data-action="pick" aria-label="Pick a random chord">
+  <svg viewBox="0 0 100 110" aria-hidden="true">
+    <defs>
+      <radialGradient id="tort" cx="34%" cy="28%" r="85%">
+        <stop offset="0" stop-color="#F6C36A"/>
+        <stop offset=".42" stop-color="#D0801F"/>
+        <stop offset="1" stop-color="#7C3B0E"/>
+      </radialGradient>
+      <clipPath id="pickClip"><path d="M50 106C40 106 6 62 4 38 2 14 22 2 50 2s48 12 46 36c-2 24-36 68-46 68z"/></clipPath>
+    </defs>
+    <path d="M50 106C40 106 6 62 4 38 2 14 22 2 50 2s48 12 46 36c-2 24-36 68-46 68z" fill="url(#tort)"/>
+    <g clip-path="url(#pickClip)" fill="#5A2508" opacity=".38">
+      <ellipse cx="22" cy="58" rx="14" ry="7" transform="rotate(-30 22 58)"/>
+      <ellipse cx="74" cy="22" rx="11" ry="5" transform="rotate(25 74 22)"/>
+      <ellipse cx="62" cy="76" rx="9" ry="5" transform="rotate(-50 62 76)"/>
+      <ellipse cx="40" cy="12" rx="8" ry="3.5"/>
+      <ellipse cx="86" cy="50" rx="7" ry="4" transform="rotate(60 86 50)"/>
+    </g>
+    <path d="M50 106C40 106 6 62 4 38 2 14 22 2 50 2s48 12 46 36c-2 24-36 68-46 68z" fill="none" stroke="#FFE2A8" stroke-opacity=".35" stroke-width="1.5"/>
+  </svg>
+  <span class="pick-label">Pick a<br>chord</span>
+</button>
+
+<dialog id="options" aria-labelledby="optTitle">
+  <form method="dialog" class="opts">
+    <h2 id="optTitle">Which chords?</h2>
+    <fieldset id="famList"><legend>Chord types</legend></fieldset>
+    <p class="hint" id="famHint" hidden>Keep at least one type of chord switched on.</p>
+    <label class="field">Root note
+      <select id="rootSelect"></select>
+    </label>
+    <label class="check"><input type="checkbox" id="autoplay"> Play the chord when it appears</label>
+    <button class="primary" value="done">Done</button>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ===================== Chord engine (pure functions) ===================== */
+
+const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const NATURAL = [0, 2, 4, 5, 7, 9, 11];
+
+// Interval tokens -> scale degree, semitones above root, name, colour family
+const IV = {
+  '1':   { deg: 1,  semi: 0,  name: 'root',           fam: 'root' },
+  'b3':  { deg: 3,  semi: 3,  name: 'minor 3rd',      fam: 'third' },
+  '3':   { deg: 3,  semi: 4,  name: 'major 3rd',      fam: 'third' },
+  '2':   { deg: 2,  semi: 2,  name: 'major 2nd',      fam: 'color' },
+  '4':   { deg: 4,  semi: 5,  name: 'perfect 4th',    fam: 'color' },
+  'b5':  { deg: 5,  semi: 6,  name: 'diminished 5th', fam: 'fifth' },
+  '5':   { deg: 5,  semi: 7,  name: 'perfect 5th',    fam: 'fifth' },
+  '#5':  { deg: 5,  semi: 8,  name: 'augmented 5th',  fam: 'fifth' },
+  '6':   { deg: 6,  semi: 9,  name: 'major 6th',      fam: 'seventh' },
+  'bb7': { deg: 7,  semi: 9,  name: 'diminished 7th', fam: 'seventh' },
+  'b7':  { deg: 7,  semi: 10, name: 'minor 7th',      fam: 'seventh' },
+  '7':   { deg: 7,  semi: 11, name: 'major 7th',      fam: 'seventh' },
+  'b9':  { deg: 9,  semi: 13, name: 'minor 9th',      fam: 'color' },
+  '9':   { deg: 9,  semi: 14, name: 'major 9th',      fam: 'color' },
+  '#9':  { deg: 9,  semi: 15, name: 'augmented 9th',  fam: 'color' },
+  '11':  { deg: 11, semi: 17, name: 'perfect 11th',   fam: 'color' },
+  '#11': { deg: 11, semi: 18, name: 'augmented 11th', fam: 'color' },
+  '13':  { deg: 13, semi: 21, name: 'major 13th',     fam: 'color' },
+};
+
+const FAMILIES = [
+  { key: 'triad',    label: 'Triads' },
+  { key: 'sus',      label: 'Sus & power chords' },
+  { key: 'add',      label: '6ths & added notes' },
+  { key: 'seventh',  label: '7th chords' },
+  { key: 'extended', label: '9ths, 11ths & 13ths' },
+  { key: 'altered',  label: 'Altered & Lydian' },
+];
+
+// spell: which root-spelling table to use. tert: 3/4 = stacked-thirds triad/7th (for figured bass)
+// opt: tones that may be left out on guitar. roman: suffix after a roman numeral.
+const TYPES = [
+  { key: 'maj',  sym: '',        say: 'major',            name: 'Major triad',              fam: 'triad', ivs: ['1','3','5'],  alt: ['M', 'maj'], tert: 3, roman: '', spell: 'maj',
+    sound: 'Bright, stable and resolved: the sound of “home” in most music.',
+    use: 'The backbone of rock, pop, folk and country. Most songs start and end on one.' },
+  { key: 'min',  sym: 'm',       say: 'minor',            name: 'Minor triad',              fam: 'triad', ivs: ['1','b3','5'], alt: ['min', '−'], tert: 3, roman: '', spell: 'min',
+    sound: 'Darker and more inward than major, but just as stable.',
+    use: 'Everywhere, from ballads to metal. In a major key the ii, iii and vi chords are minor (Dm, Em and Am in C).' },
+  { key: 'dim',  sym: 'dim',     say: 'diminished',       name: 'Diminished triad',         fam: 'triad', ivs: ['1','b3','b5'], alt: ['°', 'm♭5'], tert: 3, roman: '°', spell: 'dim',
+    sound: 'Tense and unstable: two stacked minor 3rds that want to move somewhere.',
+    use: 'The vii° chord of a major key (B° in C). Also a handy passing chord: C – C♯° – Dm.' },
+  { key: 'aug',  sym: 'aug',     say: 'augmented',        name: 'Augmented triad',          fam: 'triad', ivs: ['1','3','#5'], alt: ['+', '(♯5)'], tert: 3, roman: '+', spell: 'aug',
+    sound: 'Dreamy, unresolved and a little eerie. It is symmetrical: two stacked major 3rds.',
+    use: 'Mostly a passing chord that pushes upward, as in the classic line C – C+ – C6 – C7, where the 5th climbs a half step at a time.' },
+
+  { key: 'sus2', sym: 'sus2',    say: 'sus two',          name: 'Suspended 2nd',            fam: 'sus', ivs: ['1','2','5'], alt: ['(add2, no 3rd)'], roman: 'sus2', spell: 'maj',
+    sound: 'Open and airy. With no 3rd it is neither major nor minor.',
+    use: 'Pop, rock and acoustic songwriting. Often alternates with the plain chord: D – Dsus2 – D.' },
+  { key: 'sus4', sym: 'sus4',    say: 'sus four',         name: 'Suspended 4th',            fam: 'sus', ivs: ['1','4','5'], alt: ['sus'], roman: 'sus4', spell: 'maj',
+    sound: 'Suspended tension: the 4th wants to fall to the 3rd.',
+    use: 'The classic move is Dsus4 → D. Used in intros, endings and folk-rock riffs.' },
+  { key: '5',    sym: '5',       say: 'five',             name: 'Power chord',              fam: 'sus', ivs: ['1','5'], alt: ['(no 3rd)'], roman: '5', spell: 'maj', minStrings: 2,
+    sound: 'Raw, punchy and neutral: just root and 5th, no 3rd.',
+    use: 'Rock, punk and metal. With no 3rd it stays clear and tight under heavy distortion.' },
+
+  { key: '6',    sym: '6',       say: 'six',              name: 'Major 6th',                fam: 'add', ivs: ['1','3','5','6'], alt: ['maj6', 'add6'], opt: ['5'], roman: 'add6', spell: 'maj',
+    sound: 'Sweet, warm and a bit vintage.',
+    use: 'Swing, western swing, early rock ’n’ roll and surf. The Beatles famously ended “She Loves You” on a major 6th chord.' },
+  { key: 'm6',   sym: 'm6',      say: 'minor six',        name: 'Minor 6th',                fam: 'add', ivs: ['1','b3','5','6'], alt: ['min6', '−6'], opt: ['5'], roman: 'add6', spell: 'min',
+    sound: 'Dark but sophisticated, with a film-noir edge.',
+    use: 'Gypsy jazz, bossa nova and tango. Often used as the home minor chord instead of a plain minor triad.' },
+  { key: 'add9', sym: 'add9',    say: 'add nine',         name: 'Added 9th',                fam: 'add', ivs: ['1','3','5','9'], alt: ['add2', '(9)'], opt: ['5'], roman: 'add9', spell: 'maj',
+    sound: 'Shimmering and open: a major triad with a 9th on top, but no 7th.',
+    use: 'Pop, rock and worship guitar. Cadd9 is one of the most-played open shapes on the instrument.' },
+  { key: 'madd9',sym: 'm(add9)', say: 'minor add nine',   name: 'Minor added 9th',          fam: 'add', ivs: ['1','b3','5','9'], alt: ['madd9', 'm(add2)'], opt: ['5'], roman: '(add9)', spell: 'min',
+    sound: 'Haunting and bittersweet: the 9th rubs against the minor 3rd a step below it.',
+    use: 'Ballads, film music and ambient guitar.' },
+  { key: '69',   sym: '6/9',     say: 'six nine',         name: 'Six-nine',                 fam: 'add', ivs: ['1','3','5','6','9'], alt: ['69', '6add9'], opt: ['5'], roman: '6/9', spell: 'maj',
+    sound: 'Rich, smooth and completely at rest.',
+    use: 'A favourite final chord in jazz and bossa nova; a polished replacement for a plain major chord.' },
+
+  { key: '7',    sym: '7',       say: 'seven',            name: 'Dominant 7th',             fam: 'seventh', ivs: ['1','3','5','b7'], alt: ['dom7'], opt: ['5'], tert: 4, roman: '7', spell: 'maj',
+    sound: 'Bluesy tension: the 3rd and ♭7 form a tritone that wants to resolve.',
+    use: 'The V7 chord of any key (G7 → C). In a 12-bar blues, all three chords are often dominant 7ths.' },
+  { key: 'maj7', sym: 'maj7',    say: 'major seven',      name: 'Major 7th',                fam: 'seventh', ivs: ['1','3','5','7'], alt: ['M7', 'Δ7', 'Δ'], opt: ['5'], tert: 4, roman: 'maj7', spell: 'maj',
+    sound: 'Lush, mellow and dreamy.',
+    use: 'Jazz, bossa nova, soft rock and neo-soul. The I and IV chords of a major key (Cmaj7 and Fmaj7 in C).' },
+  { key: 'm7',   sym: 'm7',      say: 'minor seven',      name: 'Minor 7th',                fam: 'seventh', ivs: ['1','b3','5','b7'], alt: ['min7', '−7'], opt: ['5'], tert: 4, roman: '7', spell: 'min',
+    sound: 'Smooth and soulful, softer than a plain minor chord.',
+    use: 'The ii chord in the jazz ii–V–I (Dm7 – G7 – Cmaj7). Also funk vamps and R&B.' },
+  { key: 'm7b5', sym: 'm7♭5',    say: 'minor seven flat five', name: 'Half-diminished 7th', fam: 'seventh', ivs: ['1','b3','b5','b7'], alt: ['ø7', 'ø', '−7♭5'], tert: 4, roman: 'ø7', spell: 'dim',
+    sound: 'Dark, hovering and unresolved.',
+    use: 'The ii chord of a minor ii–V–i (Dm7♭5 – G7 – Cm), and the vii chord of a major key (Bm7♭5 in C).' },
+  { key: 'dim7', sym: 'dim7',    say: 'diminished seven', name: 'Diminished 7th',           fam: 'seventh', ivs: ['1','b3','b5','bb7'], alt: ['°7', 'o7'], tert: 4, roman: '°7', spell: 'dim',
+    sound: 'Dramatic and suspenseful: the silent-movie villain chord.',
+    use: 'Built entirely from minor 3rds, so any note can act as the root: slide the same shape up 3 frets and you get the same chord again. A great passing chord, and a stand-in for a dominant 7♭9.' },
+  { key: 'mmaj7',sym: 'm(maj7)', say: 'minor major seven',name: 'Minor-major 7th',          fam: 'seventh', ivs: ['1','b3','5','7'], alt: ['mΔ7', 'mM7', '−Δ7'], opt: ['5'], tert: 4, roman: '(maj7)', spell: 'min',
+    sound: 'Tense and mysterious: the classic spy-film sound.',
+    use: 'Film and TV themes, jazz, and the minor line cliché Am – Am(maj7) – Am7 – Am6.' },
+  { key: '7sus4',sym: '7sus4',   say: 'seven sus four',   name: 'Dominant 7th sus4',        fam: 'seventh', ivs: ['1','4','5','b7'], alt: ['7sus'], opt: ['5'], roman: '7sus4', spell: 'maj',
+    sound: 'A dominant chord with its tension softened: open and floating.',
+    use: 'Funk, soul, gospel and modal jazz. Often resolves to the regular 7th: G7sus4 → G7.' },
+
+  { key: '9',    sym: '9',       say: 'nine',             name: 'Dominant 9th',             fam: 'extended', ivs: ['1','3','5','b7','9'], opt: ['5'], roman: '9', spell: 'maj',
+    sound: 'Funky and full: a dominant 7th with a 9th on top.',
+    use: 'The funk rhythm-guitar chord, usually played on the middle and top strings. Also a fancier 7th in blues.' },
+  { key: 'maj9', sym: 'maj9',    say: 'major nine',       name: 'Major 9th',                fam: 'extended', ivs: ['1','3','5','7','9'], alt: ['Δ9', 'M9'], opt: ['5'], roman: 'maj9', spell: 'maj',
+    sound: 'Warm, glowing and spacious.',
+    use: 'Neo-soul, R&B, jazz ballads and city pop.' },
+  { key: 'm9',   sym: 'm9',      say: 'minor nine',       name: 'Minor 9th',                fam: 'extended', ivs: ['1','b3','5','b7','9'], alt: ['min9', '−9'], opt: ['5'], roman: '9', spell: 'min',
+    sound: 'Silky and moody.',
+    use: 'Smooth R&B, neo-soul and jazz: a lush replacement for any m7.' },
+  { key: '11',   sym: '11',      say: 'eleven',           name: 'Dominant 11th',            fam: 'extended', ivs: ['1','5','b7','9','11'], alt: ['9sus4'], opt: ['5','9'], roman: '11', spell: 'maj',
+    sound: 'Open and modern: a dominant sound with no 3rd.',
+    use: 'In practice the 3rd is left out because it clashes with the 11th, which makes C11 the same chord as C9sus4. It sounds a lot like B♭/C. Common in gospel, soul and fusion.',
+    note: 'The full stack would be 1 3 5 ♭7 9 11; the 3rd is normally omitted.' },
+  { key: 'm11',  sym: 'm11',     say: 'minor eleven',     name: 'Minor 11th',               fam: 'extended', ivs: ['1','b3','5','b7','9','11'], alt: ['min11', '−11'], opt: ['5','9'], roman: '11', spell: 'min',
+    sound: 'Spacious and modal, with stacked 4ths shimmering on top.',
+    use: 'Modal jazz, fusion and neo-soul. Unlike a major 11th, the 11th sits comfortably over a minor 3rd.' },
+  { key: '13',   sym: '13',      say: 'thirteen',         name: 'Dominant 13th',            fam: 'extended', ivs: ['1','3','5','b7','9','13'], opt: ['5','9'], roman: '13', spell: 'maj',
+    sound: 'A big, sophisticated dominant.',
+    use: 'Jazz, jump blues and big band. On guitar you usually play just root, 3rd, ♭7 and 13.',
+    note: 'The 11th is normally left out because it clashes with the 3rd.' },
+  { key: 'maj13',sym: 'maj13',   say: 'major thirteen',   name: 'Major 13th',               fam: 'extended', ivs: ['1','3','5','7','9','13'], alt: ['Δ13', 'M13'], opt: ['5','9'], roman: 'maj13', spell: 'maj',
+    sound: 'Very lush and bright.',
+    use: 'Jazz ballads and final chords.',
+    note: 'The 11th is normally left out because it clashes with the 3rd.' },
+  { key: 'm13',  sym: 'm13',     say: 'minor thirteen',   name: 'Minor 13th',               fam: 'extended', ivs: ['1','b3','5','b7','9','13'], alt: ['min13', '−13'], opt: ['5','9'], roman: '13', spell: 'min',
+    sound: 'Rich and dark, with the Dorian flavour of a natural 6th on top.',
+    use: 'Jazz, funk and neo-soul vamps.' },
+
+  { key: '7b9',  sym: '7♭9',     say: 'seven flat nine',  name: 'Dominant 7th flat 9',      fam: 'altered', ivs: ['1','3','5','b7','b9'], opt: ['5'], roman: '7♭9', spell: 'maj',
+    sound: 'Tense and exotic, with a Spanish flavour.',
+    use: 'The V chord of a minor key (G7♭9 → Cm). Flamenco, jazz and classical.' },
+  { key: '7s9',  sym: '7♯9',     say: 'seven sharp nine', name: 'Dominant 7th sharp 9',     fam: 'altered', ivs: ['1','3','5','b7','#9'], opt: ['5'], roman: '7♯9', spell: 'maj',
+    sound: 'Gritty and aggressive: it sounds major and minor at once.',
+    use: 'The “Hendrix chord” (E7♯9 in “Purple Haze”). Funk, blues-rock and jazz.',
+    note: 'The ♯9 is spelled as a raised 9th, but it sounds like a minor 3rd an octave up. That clash is the point.' },
+  { key: '7s5',  sym: '7♯5',     say: 'seven sharp five', name: 'Augmented 7th',            fam: 'altered', ivs: ['1','3','#5','b7'], alt: ['+7', 'aug7', '7+'], tert: 4, roman: '+7', spell: 'aug',
+    sound: 'Unstable and pushing: the raised 5th leans up into the next chord.',
+    use: 'A dominant with extra drive. In G7♯5 → C, the D♯ rises to E. Jazz and blues turnarounds.' },
+  { key: '7b5',  sym: '7♭5',     say: 'seven flat five',  name: 'Dominant 7th flat 5',      fam: 'altered', ivs: ['1','3','b5','b7'], alt: ['7(♭5)'], tert: 4, roman: '7♭5', spell: 'maj',
+    sound: 'Strange and tense, with two tritones inside it.',
+    use: 'A jazz dominant. It is symmetrical: C7♭5 has the same notes as F♯7♭5, which is the idea behind tritone substitution.' },
+  { key: 'maj7s5',sym: 'maj7♯5', say: 'major seven sharp five', name: 'Augmented major 7th', fam: 'altered', ivs: ['1','3','#5','7'], alt: ['+maj7', 'Δ+', 'maj7(♯5)'], tert: 4, roman: '+maj7', spell: 'aug',
+    sound: 'Bright but unsettled: hazy and futuristic.',
+    use: 'Jazz and film music. It is the III chord of the harmonic and melodic minor scales.' },
+  { key: 'maj7s11',sym: 'maj7♯11',say: 'major seven sharp eleven', name: 'Lydian major 7th', fam: 'altered', ivs: ['1','3','5','7','#11'], alt: ['Δ7♯11', 'maj7(♯11)'], opt: ['5'], roman: 'maj7♯11', spell: 'maj',
+    sound: 'Floating and magical: the Lydian sound.',
+    use: 'Film scores, fusion and jazz ballads. The raised 11th avoids the clash a natural 11th would make with the 3rd.' },
+  { key: '7s11', sym: '7♯11',    say: 'seven sharp eleven', name: 'Lydian dominant 7th',    fam: 'altered', ivs: ['1','3','5','b7','#11'], alt: ['7(♯11)'], opt: ['5'], roman: '7♯11', spell: 'maj',
+    sound: 'A bright, quirky dominant: the Lydian dominant sound.',
+    use: 'Jazz, Brazilian music and fusion, often as a ♭VII7 chord or a tritone substitute.' },
+];
+const TYPE = Object.fromEntries(TYPES.map(t => [t.key, t]));
+
+const ROOT_SPELL = {
+  maj: ['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'],
+  min: ['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'],
+  dim: ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'],
+  aug: ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'],
+};
+const SIMPLE_PC = ['C','C♯/D♭','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+const MAJOR_KEYS = ['C','D♭','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+const MINOR_KEYS = ['C','C♯','D','E♭','E','F','F♯','G','G♯','A','B♭','B'];
+
+const mod12 = n => ((n % 12) + 12) % 12;
+const pretty = s => s.replace(/bb/g, '♭♭').replace(/##/g, '♯♯').replace(/b/g, '♭').replace(/#/g, '♯');
+
+function parseNote(str) {
+  const letter = LETTERS.indexOf(str[0].toUpperCase());
+  let acc = 0;
+  for (const ch of str.slice(1)) { if (ch === '#' || ch === '♯' || ch === 's') acc++; else if (ch === 'b' || ch === '♭') acc--; }
+  return { letter, acc, pc: mod12(NATURAL[letter] + acc) };
+}
+const accStr = a => a > 0 ? '♯'.repeat(a) : '♭'.repeat(-a);
+const noteName = n => LETTERS[n.letter] + accStr(n.acc);
+// URL-safe spelling for links: F# -> Fs, Bb -> Bb
+const noteAscii = n => LETTERS[n.letter] + (n.acc > 0 ? 's'.repeat(n.acc) : 'b'.repeat(-n.acc));
+function noteSpoken(n) {
+  const words = { 1: '-sharp', 2: '-double-sharp', '-1': '-flat', '-2': '-double-flat' };
+  return LETTERS[n.letter] + (words[n.acc] || '');
+}
+// Enharmonic hint for awkward spellings (double accidentals, Cb, Fb, E#, B#)
+function enharmonic(n) {
+  const name = LETTERS[n.letter] + n.acc;
+  if (Math.abs(n.acc) >= 2 || ['C-1', 'F-1', 'E1', 'B1'].includes(name)) return SIMPLE_PC[n.pc];
+  return null;
+}
+
+function spellFrom(root, iv) {
+  const letter = (root.letter + (iv.deg - 1)) % 7;
+  const pc = mod12(root.pc + iv.semi);
+  let acc = pc - NATURAL[letter];
+  if (acc > 6) acc -= 12;
+  if (acc < -6) acc += 12;
+  return { letter, acc, pc };
+}
+
+// Interval between two spelled notes, b above a, within an octave
+const IQ = { 1: [0, 'P'], 2: [2, 'M'], 3: [4, 'M'], 4: [5, 'P'], 5: [7, 'P'], 6: [9, 'M'], 7: [11, 'M'] };
+const QUAL_WORD = { P: 'perfect', M: 'major', m: 'minor', A: 'augmented', d: 'diminished', AA: 'doubly augmented', dd: 'doubly diminished' };
+const ORD = { 1: 'unison', 2: '2nd', 3: '3rd', 4: '4th', 5: '5th', 6: '6th', 7: '7th', 8: 'octave' };
+function intervalFromSteps(num, semis) {
+  const base = ((num - 1) % 7) + 1;
+  const oct = Math.floor((num - 1) / 7);
+  const [exp, cls] = IQ[base];
+  const diff = semis - 12 * oct - exp;
+  let q;
+  if (cls === 'P') q = { 0: 'P', 1: 'A', '-1': 'd', 2: 'AA', '-2': 'dd' }[diff];
+  else q = { 0: 'M', '-1': 'm', '-2': 'd', 1: 'A', 2: 'AA', '-3': 'dd' }[diff];
+  q = q || '?';
+  const shortNum = num;
+  return { short: q + shortNum, long: `${QUAL_WORD[q] || q} ${num > 8 ? num + 'th' : ORD[num]}`, semis };
+}
+function intervalBetween(a, b) {
+  const steps = mod12(0) + ((b.letter - a.letter + 7) % 7);
+  let semis = mod12(b.pc - a.pc);
+  const num = steps + 1;
+  if (num === 1 && semis > 6) semis -= 12;
+  return intervalFromSteps(num, semis);
+}
+
+function rootFor(type, pc) { return ROOT_SPELL[type.spell][pc]; }
+
+function makeChord(rootStr, typeKey) {
+  const type = TYPE[typeKey];
+  const root = parseNote(rootStr);
+  const tones = type.ivs.map(tok => {
+    const iv = IV[tok];
+    const note = spellFrom(root, iv);
+    return { tok, iv, note, pc: note.pc, label: tok === '1' ? 'R' : pretty(tok), optional: (type.opt || []).includes(tok) };
+  });
+  const rootName = noteName(root);
+  return {
+    root, type, tones, rootName,
+    symbol: rootName + type.sym,
+    id: noteAscii(root) + '_' + type.key,
+    spoken: noteSpoken(root) + ' ' + type.say,
+  };
+}
+
+function chordFromId(id) {
+  const m = /^([A-G](?:s{1,2}|#{1,2}|b{1,2})?)_(.+)$/.exec(id || '');
+  if (!m || !TYPE[m[2]]) return null;
+  return makeChord(m[1], m[2]);
+}
+
+function randomChord(opts = {}) {
+  const fams = opts.families && opts.families.length ? opts.families : FAMILIES.map(f => f.key);
+  const pool = TYPES.filter(t => fams.includes(t.fam));
+  const type = pool[Math.floor(Math.random() * pool.length)];
+  const pc = opts.rootPc != null && opts.rootPc !== '' ? Number(opts.rootPc) : Math.floor(Math.random() * 12);
+  return makeChord(rootFor(type, pc), type.key);
+}
+
+/* ---------- Stacking & inversions ---------- */
+function stackIntervals(chord) {
+  const out = [];
+  for (let i = 1; i < chord.tones.length; i++) {
+    const a = chord.tones[i - 1].iv, b = chord.tones[i].iv;
+    out.push(intervalFromSteps(b.deg - a.deg + 1, b.semi - a.semi));
+  }
+  return out;
+}
+
+const INV_NAMES = ['Root position', '1st inversion', '2nd inversion', '3rd inversion', '4th inversion', '5th inversion'];
+const FIGURES = { 3: [['5', '3'], ['6', '3'], ['6', '4']], 4: [['7'], ['6', '5'], ['4', '3'], ['4', '2']] };
+
+function inversions(chord) {
+  const same = sameNotes(chord);
+  return chord.tones.map((bass, i) => {
+    const order = chord.tones.slice(i).concat(chord.tones.slice(0, i));
+    const steps = [];
+    for (let k = 1; k < order.length; k++) steps.push(intervalBetween(order[k - 1].note, order[k].note));
+    const figure = chord.type.tert && FIGURES[chord.type.tert] ? FIGURES[chord.type.tert][i] : null;
+    const alias = same.find(s => s.pc === bass.pc && bass.tok !== '1');
+    return {
+      index: i, name: INV_NAMES[i], bass, order, steps, figure, alias,
+      symbol: i === 0 ? chord.symbol : chord.symbol + '/' + noteName(bass.note),
+      explain: explainInversion(chord, bass, alias),
+      voicings: findVoicings(chord, bass),
+      pianoMidis: closeVoicing(order),
+    };
+  });
+}
+
+function explainInversion(chord, bass, alias) {
+  const b = noteName(bass.note), r = chord.rootName, t = bass.tok;
+  let s;
+  if (chord.type.key === '5' && t === '5') {
+    s = `${b} under the root turns the 5th into a 4th. Players call this an inverted power chord: thicker and darker than the normal shape.`;
+  } else if (t === '1') {
+    s = `${r} is the lowest note. This is the most stable, grounded version of the chord, and the one most chord charts mean by default.`;
+  } else if (t === '3' || t === 'b3') {
+    s = `${b}, the ${bass.iv.name}, is in the bass. It sounds lighter and less settled than root position, which makes it ideal for bass lines that walk by step from one chord to the next.`;
+  } else if (t === '5') {
+    s = `${b}, the 5th, is in the bass. It feels like it wants to move, so it shows up as a passing chord, over pedal bass notes, and in the classical “cadential 6/4” (C/G → G → C).`;
+  } else if (t === 'b5' || t === '#5') {
+    s = `The altered 5th, ${b}, is in the bass. That makes the chord even less stable; you mostly hear it in chromatic bass lines.`;
+  } else if (t === 'b7') {
+    s = `${b}, the ♭7, is in the bass. It pulls hard downward, and the bass usually steps down next, as in C7/B♭ → F/A.`;
+  } else if (t === '7') {
+    s = `${b}, the major 7th, sits in the bass a half step under the root. It is a striking, slightly dissonant sound, often used in descending lines like C – C/B – Am.`;
+  } else if (t === 'bb7') {
+    s = `${b}, the diminished 7th, is in the bass.`;
+  } else if (t === '6') {
+    s = `${b}, the 6th, is in the bass.`;
+  } else {
+    s = `${b}, the ${bass.iv.name}, is in the bass. That is unusual: it sounds more like a slash chord over a pedal note than a classic inversion.`;
+  }
+  if (chord.type.key === 'dim7' && t !== '1') {
+    s += ` Because the chord is built from equal minor 3rds, this is also a diminished 7th chord built on ${b} — same notes, same sound.`;
+  } else if (alias) {
+    s += ` With ${b} in the bass, most musicians would just call this ${alias.symbol}.`;
+  }
+  return s;
+}
+
+function closeVoicing(order) {
+  const midis = [];
+  let prev = 48 + order[0].pc - 1; // start in the C3 octave
+  for (const t of order) {
+    let m = prev + 1;
+    while (mod12(m) !== t.pc) m++;
+    midis.push({ midi: m, tone: t });
+    prev = m;
+  }
+  return midis;
+}
+
+/* ---------- Same notes / keys ---------- */
+function pcKey(pcs) { return [...new Set(pcs)].sort((a, b) => a - b).join(','); }
+
+function sameNotes(chord) {
+  const target = pcKey(chord.tones.map(t => t.pc));
+  const size = new Set(chord.tones.map(t => t.pc)).size;
+  const out = [];
+  for (const type of TYPES) {
+    if (type.ivs.length !== size) continue;
+    for (let pc = 0; pc < 12; pc++) {
+      if (type === chord.type && pc === chord.root.pc) continue;
+      const pcs = type.ivs.map(tok => mod12(pc + IV[tok].semi));
+      if (pcKey(pcs) === target) {
+        const c = makeChord(rootFor(type, pc), type.key);
+        if (!out.some(o => o.symbol === c.symbol)) out.push({ symbol: c.symbol, id: c.id, pc });
+      }
+    }
+  }
+  return out;
+}
+
+const SCALES = [
+  { name: 'major',          steps: [0, 2, 4, 5, 7, 9, 11], keys: MAJOR_KEYS, group: 'major' },
+  { name: 'minor',          steps: [0, 2, 3, 5, 7, 8, 10], keys: MINOR_KEYS, group: 'minor' },
+  { name: 'harmonic minor', steps: [0, 2, 3, 5, 7, 8, 11], keys: MINOR_KEYS, group: 'minor' },
+  { name: 'melodic minor',  steps: [0, 2, 3, 5, 7, 9, 11], keys: MINOR_KEYS, group: 'minor' },
+];
+const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+
+function romanFor(chord, degree) {
+  const toks = chord.type.ivs;
+  const minorish = toks.includes('b3') && !toks.includes('3');
+  const n = NUMERALS[degree];
+  return (minorish ? n.toLowerCase() : n) + chord.type.roman;
+}
+
+function keysFor(chord) {
+  const pcs = chord.tones.map(t => t.pc);
+  const out = [];
+  for (const sc of SCALES) {
+    for (let tonic = 0; tonic < 12; tonic++) {
+      const set = sc.steps.map(s => mod12(tonic + s));
+      if (!pcs.every(p => set.includes(p))) continue;
+      const degree = set.indexOf(chord.root.pc);
+      out.push({ roman: romanFor(chord, degree), key: `${sc.keys[tonic]} ${sc.name}`, group: sc.group, degree });
+    }
+  }
+  return out.sort((a, b) => a.degree - b.degree);
+}
+
+/* ---------- Guitar voicing search ---------- */
+const TUNING = [40, 45, 50, 55, 59, 64]; // E2 A2 D3 G3 B3 E4
+const STRING_NAMES = ['E', 'A', 'D', 'G', 'B', 'e'];
+
+function findVoicings(chord, bassTone, max = 4) {
+  const toneByPc = new Map(chord.tones.map(t => [t.pc, t]));
+  const required = chord.tones.filter(t => !t.optional || t === bassTone).map(t => t.pc);
+  const optional = chord.tones.filter(t => t.optional && t !== bassTone).map(t => t.pc);
+  const bassPc = bassTone.pc;
+  const minStrings = chord.type.minStrings || 3;
+  const found = new Map();
+
+  for (let pos = 0; pos <= 12; pos++) {
+    const lo = Math.max(1, pos), hi = pos + 3;
+    const allowOpen = hi <= 5;
+    const choices = TUNING.map(open => {
+      const c = [-1];
+      if (allowOpen && toneByPc.has(open % 12)) c.push(0);
+      for (let f = lo; f <= hi; f++) if (toneByPc.has((open + f) % 12)) c.push(f);
+      return c;
+    });
+    const frets = new Array(6);
+    const rec = (s, started) => {
+      if (s === 6) { if (started) evaluate(frets.slice()); return; }
+      for (const f of choices[s]) {
+        if (!started && f >= 0 && (TUNING[s] + f) % 12 !== bassPc) continue;
+        frets[s] = f;
+        rec(s + 1, started || f >= 0);
+      }
+    };
+    rec(0, false);
+  }
+
+  function evaluate(frets) {
+    const key = frets.join(',');
+    if (found.has(key)) return;
+    const sounding = [];
+    for (let s = 0; s < 6; s++) if (frets[s] >= 0) sounding.push(s);
+    if (sounding.length < minStrings) return;
+    const first = sounding[0], last = sounding[sounding.length - 1];
+    const gaps = (last - first + 1) - sounding.length;
+    if (gaps > 1) return;
+    const midis = sounding.map(s => TUNING[s] + frets[s]);
+    if (mod12(Math.min(...midis)) !== bassPc) return;
+    const present = new Set(midis.map(mod12));
+    for (const pc of required) if (!present.has(pc)) return;
+    const omitted = optional.filter(pc => !present.has(pc)).length;
+
+    const fretted = sounding.filter(s => frets[s] > 0);
+    let fingers = fretted.length, barre = null;
+    if (fretted.length > 4) {
+      const fm = Math.min(...fretted.map(s => frets[s]));
+      const atMin = fretted.filter(s => frets[s] === fm);
+      if (atMin.length < 2) return;
+      const from = atMin[0], to = atMin[atMin.length - 1];
+      for (let s = from; s <= to; s++) if (frets[s] < fm) return;
+      fingers = 1 + fretted.filter(s => frets[s] > fm).length;
+      if (fingers > 4) return;
+      barre = { fret: fm, from, to };
+    }
+    const ff = fretted.map(s => frets[s]);
+    const minF = ff.length ? Math.min(...ff) : 0;
+    const maxF = ff.length ? Math.max(...ff) : 0;
+    const span = maxF - minF;
+    const opens = sounding.filter(s => frets[s] === 0).length;
+
+    let score = 0;
+    score += span * span * 0.3;
+    score += minF * 0.18;
+    score -= sounding.length * 0.9;
+    score += gaps * 1.6;
+    score += barre ? 0.8 : 0;
+    score += fingers * 0.35;
+    score -= opens * 0.5;
+    score += optional.filter(pc => !present.has(pc)).reduce((acc, pc) => acc + (toneByPc.get(pc).tok === '5' ? 1 : 1.6), 0);
+    // open strings ringing between notes fretted high up are awkward to keep clean
+    for (let k = 1; k < sounding.length - 1; k++) {
+      const s = sounding[k];
+      if (frets[s] === 0 && frets[sounding[k - 1]] >= 4 && frets[sounding[k + 1]] >= 4) score += 0.6;
+    }
+    // with a partial barre, extra notes above (treble side of) the barre are a stretch
+    if (barre) for (const s of sounding) if (s > barre.to) score += 1.5;
+    const counts = {};
+    midis.forEach(m => { counts[mod12(m)] = (counts[mod12(m)] || 0) + 1; });
+    for (const pc in counts) {
+      if (counts[pc] < 2) continue;
+      const tok = toneByPc.get(Number(pc)).tok;
+      if (tok === '1' || tok === '5') continue;
+      score += (counts[pc] - 1) * (IV[tok].fam === 'color' ? 1.4 : 0.7);
+    }
+    const sorted = midis.slice().sort((a, b) => a - b);
+    for (let k = 1; k < sorted.length; k++) {
+      const d = sorted[k] - sorted[k - 1];
+      if (d === 0) score += 2;
+      if (sorted[k - 1] < 50 && d <= 2) score += 1.5;
+      else if (sorted[k - 1] < 47 && d <= 4) score += 0.8;
+    }
+    // A minor 9th between two notes is a harsh rub (except root → ♭9 in a 7♭9 chord)
+    for (let a = 0; a < midis.length; a++) for (let b = 0; b < midis.length; b++) {
+      if (midis[b] - midis[a] === 13) {
+        const ta = toneByPc.get(mod12(midis[a])).tok, tb = toneByPc.get(mod12(midis[b])).tok;
+        if (!(ta === '1' && tb === 'b9')) score += 0.8;
+      }
+    }
+    // A ♯9 or ♭9 sounding below the 3rd blurs the chord
+    const third = chord.tones.find(t => t.tok === '3');
+    const alt9 = chord.tones.find(t => t.tok === '#9' || t.tok === 'b9');
+    if (third && alt9) {
+      const lo3 = Math.min(...midis.filter(m => mod12(m) === third.pc));
+      const lo9 = Math.min(...midis.filter(m => mod12(m) === alt9.pc));
+      if (lo9 < lo3) score += 2.5;
+    }
+    found.set(key, {
+      frets, score, barre, fingers, minF, maxF, bassString: first,
+      notes: sounding.map(s => ({ string: s, fret: frets[s], midi: TUNING[s] + frets[s], tone: toneByPc.get((TUNING[s] + frets[s]) % 12) })),
+      omitted: optional.filter(pc => !present.has(pc)).map(pc => toneByPc.get(pc)),
+    });
+  }
+
+  const all = [...found.values()].sort((a, b) => a.score - b.score);
+  const picked = [];
+  // First: the best shape for each bass string (like learning E-, A- and D-shape chords)
+  const bestByString = new Map();
+  for (const v of all) if (!bestByString.has(v.bassString)) bestByString.set(v.bassString, v);
+  for (const v of [...bestByString.values()].sort((a, b) => a.score - b.score).slice(0, 3)) picked.push(v);
+  // Then fill with other good shapes in a different spot on the neck
+  for (const v of all) {
+    if (picked.length >= max) break;
+    if (picked.includes(v)) continue;
+    const tooClose = picked.some(p => p.bassString === v.bassString && Math.abs(p.minF - v.minF) < 3);
+    if (!tooClose && v.score < picked[0].score + 6) picked.push(v);
+  }
+  return picked.sort((a, b) => a.minF - b.minF || a.bassString - b.bassString);
+}
+
+const midiToFreq = m => 440 * Math.pow(2, (m - 69) / 12);
+
+
+/* ===================== Sound: plucked strings (Karplus–Strong) ===================== */
+const Sound = (() => {
+  let ctx = null, out = null;
+  const cache = new Map();
+  function unlock() {
+    try {
+      if (!ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return false;
+        ctx = new AC();
+        const comp = ctx.createDynamicsCompressor();
+        comp.threshold.value = -14; comp.ratio.value = 4;
+        out = ctx.createGain(); out.gain.value = 0.9;
+        out.connect(comp); comp.connect(ctx.destination);
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+      return true;
+    } catch (e) { return false; }
+  }
+  function buffer(midi) {
+    if (cache.has(midi)) return cache.get(midi);
+    const sr = ctx.sampleRate, dur = 3.2, len = Math.floor(sr * dur);
+    const buf = ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+    const freq = midiToFreq(midi);
+    const N = Math.max(2, Math.round(sr / freq - 0.5));
+    const ring = new Float32Array(N);
+    let last = 0;
+    for (let i = 0; i < N; i++) { last = last * 0.45 + (Math.random() * 2 - 1) * 0.55; ring[i] = last; } // softened pick noise
+    const decay = midi < 52 ? 0.9975 : midi < 62 ? 0.9965 : 0.995;
+    let idx = 0;
+    for (let i = 0; i < len; i++) {
+      const next = idx + 1 === N ? 0 : idx + 1;
+      const v = ring[idx];
+      d[i] = v;
+      ring[idx] = decay * 0.5 * (v + ring[next]);
+      idx = next;
+    }
+    const fade = Math.floor(sr * 0.25);
+    for (let i = 0; i < fade; i++) d[len - 1 - i] *= i / fade;
+    cache.set(midi, buf);
+    return buf;
+  }
+  function play(midis, gap = 0.03) {
+    if (!unlock() || !midis.length) return;
+    const t0 = ctx.currentTime + 0.04;
+    midis.forEach((m, i) => {
+      const src = ctx.createBufferSource();
+      src.buffer = buffer(m);
+      const g = ctx.createGain();
+      g.gain.value = 0.34;
+      src.connect(g); g.connect(out);
+      src.start(t0 + i * gap);
+    });
+  }
+  return { unlock, play };
+})();
+
+/* ===================== App ===================== */
+(() => {
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const STORE = 'chord-roulette:v1';
+  const DEFAULTS = { families: FAMILIES.map(f => f.key), rootPc: '', labels: 'interval', autoplay: true };
+  const INV_TABS = ['Root', '1st', '2nd', '3rd', '4th', '5th'];
+  const FAM_LABEL = { root: 'Root', third: '3rd', fifth: '5th', seventh: '6th or 7th', color: 'Added colour (2, 4, 9, 11, 13)' };
+  const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let settings = loadSettings();
+  let recent = loadRecent();
+  let chord = null, invs = [], invIndex = 0, keysOpen = false;
+
+  function loadSettings() {
+    try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORE) || '{}') }; } catch (e) { return { ...DEFAULTS }; }
+  }
+  function saveSettings() { try { localStorage.setItem(STORE, JSON.stringify(settings)); } catch (e) { /* storage unavailable */ } }
+  function loadRecent() {
+    try { return JSON.parse(localStorage.getItem(STORE + ':recent') || '[]').filter(id => chordFromId(id)); } catch (e) { return []; }
+  }
+  function saveRecent() { try { localStorage.setItem(STORE + ':recent', JSON.stringify(recent)); } catch (e) { /* ignore */ } }
+
+  /* ---------- small renderers ---------- */
+  function symHTML(c, bassNote) {
+    const r = c.root;
+    return `<span class="sym-l">${LETTERS[r.letter]}</span>` +
+      (r.acc ? `<span class="sym-a">${accStr(r.acc)}</span>` : '') +
+      (c.type.sym ? `<span class="sym-q">${esc(c.type.sym)}</span>` : '') +
+      (bassNote ? `<span class="sym-s">/${noteName(bassNote)}</span>` : '');
+  }
+  function fitClass(text) { return text.length > 9 ? ' fit-2' : text.length > 6 ? ' fit-1' : ''; }
+  const label = tone => settings.labels === 'note' ? noteName(tone.note) : tone.label;
+  const icon = {
+    strum: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6M9 5v14M14 8v8M19 10v4"/></svg>',
+    arp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 18h3v-4h3v-4h3V6h3V3"/></svg>',
+    share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>',
+  };
+
+  function fretboardSVG(v) {
+    const fretted = v.notes.filter(n => n.fret > 0).map(n => n.fret);
+    const maxF = fretted.length ? Math.max(...fretted) : 0;
+    const start = maxF <= 5 ? 1 : Math.min(...fretted);
+    const rows = 5, SX = 18, SY = 22, L = 26, T = 28;
+    const W = L + 5 * SX + 12, H = T + rows * SY + 8;
+    const x = s => L + s * SX;
+    let g = `<rect class="board" x="${L - 7}" y="${T}" width="${5 * SX + 14}" height="${rows * SY}" rx="2"/>`;
+    for (let r = 0; r < rows; r++) {
+      const f = start + r, cy = T + (r + 0.5) * SY;
+      if ([3, 5, 7, 9, 15].includes(f)) g += `<circle class="inlay" cx="${x(2.5)}" cy="${cy}" r="4"/>`;
+      if (f === 12) g += `<circle class="inlay" cx="${x(1.5)}" cy="${cy}" r="4"/><circle class="inlay" cx="${x(3.5)}" cy="${cy}" r="4"/>`;
+    }
+    for (let r = 1; r <= rows; r++) g += `<line class="fret" x1="${L - 7}" x2="${x(5) + 7}" y1="${T + r * SY}" y2="${T + r * SY}"/>`;
+    if (start === 1) g += `<line class="nut" x1="${L - 6}" x2="${x(5) + 6}" y1="${T}" y2="${T}"/>`;
+    else {
+      g += `<line class="fret" x1="${L - 7}" x2="${x(5) + 7}" y1="${T}" y2="${T}"/>`;
+      g += `<text class="frno" x="${L - 10}" y="${T + 0.5 * SY + 4}">${start}fr</text>`;
+    }
+    for (let s = 0; s < 6; s++) g += `<line class="str" x1="${x(s)}" x2="${x(s)}" y1="${T}" y2="${T + rows * SY}" stroke-width="${(1.7 - s * 0.2).toFixed(2)}"/>`;
+    if (v.barre) {
+      const cy = T + (v.barre.fret - start + 0.5) * SY;
+      g += `<rect class="barre" x="${x(v.barre.from) - 8}" y="${cy - 8}" width="${x(v.barre.to) - x(v.barre.from) + 16}" height="16" rx="8"/>`;
+    }
+    const lowest = v.notes.reduce((a, n) => (n.midi < a.midi ? n : a), v.notes[0]);
+    for (let s = 0; s < 6; s++) {
+      const f = v.frets[s];
+      if (f < 0) g += `<text class="mk" x="${x(s)}" y="${T - 8}">×</text>`;
+      else if (f === 0) {
+        const n = v.notes.find(q => q.string === s);
+        const t = label(n.tone);
+        g += `<g class="f-${n.tone.iv.fam}"><circle class="open" cx="${x(s)}" cy="${T - 12}" r="7.5"/>` +
+          (n === lowest ? `<circle class="bass-ring" cx="${x(s)}" cy="${T - 12}" r="10"/>` : '') +
+          `<text class="open-t" x="${x(s)}" y="${T - 11.5}" style="font-size:${t.length > 2 ? 6.5 : 8.5}px">${esc(t)}</text></g>`;
+      }
+    }
+    for (const n of v.notes) {
+      if (n.fret <= 0) continue;
+      const cx = x(n.string), cy = T + (n.fret - start + 0.5) * SY;
+      const t = label(n.tone);
+      const fs = t.length > 2 ? 7 : 9;
+      g += `<g class="f-${n.tone.iv.fam}"><circle class="nd" cx="${cx}" cy="${cy}" r="8"/>` +
+        (n === lowest ? `<circle class="bass-ring" cx="${cx}" cy="${cy}" r="10"/>` : '') +
+        `<text class="nd-t" x="${cx}" y="${cy + 0.5}" style="font-size:${fs}px">${esc(t)}</text></g>`;
+    }
+    return `<svg class="fb" viewBox="0 0 ${W} ${H}" aria-hidden="true">${g}</svg>`;
+  }
+
+  function pianoSVG(pm) {
+    const WHITE = [0, 2, 4, 5, 7, 9, 11];
+    const start = 48, end = 71, KW = 18, KH = 66, BW = 11, BH = 41;
+    const on = new Map(pm.map(p => [p.midi, p.tone]));
+    let whites = '', blacks = '', texts = '', wi = 0;
+    for (let m = start; m <= end; m++) {
+      if (!WHITE.includes(m % 12)) continue;
+      const t = on.get(m), x0 = wi * KW;
+      whites += `<rect class="wk ${t ? 'on f-' + t.iv.fam : ''}" x="${x0 + 0.5}" y="0.5" width="${KW - 1}" height="${KH}" rx="2.5"/>`;
+      if (t) texts += `<text x="${x0 + KW / 2}" y="${KH - 7}">${esc(label(t))}</text>`;
+      wi++;
+    }
+    wi = 0;
+    for (let m = start; m <= end; m++) {
+      if (WHITE.includes(m % 12)) { wi++; continue; }
+      const t = on.get(m), x0 = wi * KW - BW / 2;
+      blacks += `<rect class="bk ${t ? 'on f-' + t.iv.fam : ''}" x="${x0}" y="0.5" width="${BW}" height="${BH}" rx="1.5"/>`;
+      if (t) texts += `<text x="${x0 + BW / 2}" y="${BH - 6}" style="font-size:6.5px">${esc(label(t))}</text>`;
+    }
+    return `<svg class="piano" viewBox="0 0 ${14 * KW + 1} ${KH + 2}" role="img" aria-label="Piano keys: ${esc(pm.map(p => noteName(p.tone.note)).join(', '))}">${whites}${blacks}${texts}</svg>`;
+  }
+
+  function noteHTML(n) {
+    const e = enharmonic(n);
+    return `${noteName(n)}${e ? `<span class="enh">sounds as ${e}</span>` : ''}`;
+  }
+
+  /* ---------- page renderers ---------- */
+  function renderEmpty() {
+    $('#hero').innerHTML = `<div class="empty"><h1>Pick a chord.</h1>
+      <p>Tap the pick for a random chord, with its notes, how it’s built, every inversion and where to play it on the neck.</p>
+      <p class="kbd">Or press <kbd>Space</kbd>.</p></div>`;
+    $('#details').innerHTML = recentHTML();
+  }
+
+  function renderHero(c) {
+    const t = c.type;
+    const alts = (t.alt || []).map(a => a.startsWith('(') ? c.rootName + ' ' + a : c.rootName + a);
+    const count = c.tones.length;
+    $('#hero').innerHTML = `
+      <h1 class="sym${fitClass(c.symbol)}" aria-label="${esc(c.spoken)}">${symHTML(c)}</h1>
+      <p class="say">${esc(c.spoken)}</p>
+      <p class="kind">${esc(t.name)}, ${count} notes.${alts.length ? ` Also written ${alts.map(esc).join(' or ')}.` : ''}</p>
+      <div class="actions">
+        <button type="button" class="btn on-amber" data-action="strum">${icon.strum}Strum</button>
+        <button type="button" class="btn" data-action="arp">${icon.arp}Arpeggio</button>
+        <button type="button" class="btn icon-only" data-action="share" aria-label="Share this chord" title="Share this chord">${icon.share}</button>
+      </div>`;
+  }
+
+  function tonesHTML(c) {
+    const stack = stackIntervals(c);
+    const rows = c.tones.map(tn => `
+      <li><span class="dot f-${tn.iv.fam}">${esc(tn.label)}</span>
+        <span class="tn">${noteHTML(tn.note)}</span>
+        <span class="ti">${tn.tok === '1' ? 'Root' : esc(cap(tn.iv.name))}${tn.optional ? '<span class="opt-tag">Often left out on guitar</span>' : ''}</span>
+        <span class="ts">${tn.iv.semi % 12 === tn.iv.semi ? tn.iv.semi : `${tn.iv.semi} (${tn.iv.semi % 12})`} semitones</span></li>`).join('');
+    let chain = `<li class="n">${noteName(c.tones[0].note)}</li>`;
+    stack.forEach((iv, i) => { chain += `<li class="i" title="${esc(iv.long)}">+${iv.short}</li><li class="n">${noteName(c.tones[i + 1].note)}</li>`; });
+    return `<section class="sec" aria-labelledby="h-notes"><h2 id="h-notes">Notes and formula</h2>
+      <ol class="tones">${rows}</ol>
+      <div class="formula"><span class="muted">Formula</span><span class="big">${c.tones.map(x => esc(pretty(x.tok))).join(' ')}</span></div>
+      <h3>How it stacks up</h3>
+      <ul class="chain" aria-label="Intervals between each note and the next">${chain}</ul>
+      <p class="cap">m = minor, M = major, P = perfect, A = augmented, d = diminished. Semitones in brackets are within one octave.</p>
+      ${c.type.note ? `<p class="note-text">${esc(c.type.note)}</p>` : ''}
+    </section>`;
+  }
+
+  function invHTML() {
+    const inv = invs[invIndex];
+    const tabs = invs.map((v, i) => `<button type="button" class="tab" role="tab" id="tab-${i}" aria-controls="invpanel" aria-selected="${i === invIndex}" data-inv="${i}">${INV_TABS[i]}</button>`).join('');
+    const fig = inv.figure ? `<span class="figure">Figured bass <span class="fig">${inv.figure.map(esc).join('<br>')}</span></span>` : '';
+    let order = '';
+    inv.order.forEach((t, i) => {
+      if (i) order += `<li class="i" title="${esc(inv.steps[i - 1].long)}">+${inv.steps[i - 1].short}</li>`;
+      order += `<li class="n">${noteName(t.note)}</li>`;
+    });
+    const legend = Object.keys(FAM_LABEL).filter(f => chord.tones.some(t => t.iv.fam === f))
+      .map(f => `<li class="f-${f}"><i></i>${FAM_LABEL[f]}</li>`).join('');
+    const shapes = inv.voicings.length
+      ? `<div class="shapes">${inv.voicings.map((v, i) => `
+          <button type="button" class="shape" data-action="voicing" data-v="${i}" aria-label="Play ${esc(inv.symbol)}, frets ${v.frets.map(f => f < 0 ? 'muted' : f).join(' ')}">
+            ${fretboardSVG(v)}
+            <div class="tab-line">${v.frets.map(f => f < 0 ? 'x' : f).join(' ')}</div>
+            <div class="meta">${shapeMeta(v)}</div>
+            <span class="play">${icon.play}Play</span>
+          </button>`).join('')}</div>`
+      : `<p class="no-shape">There is no comfortable one-guitar shape for this inversion in standard tuning. It is easiest heard on keys, or with a bass player taking the low note.</p>`;
+    return `<section class="sec" aria-labelledby="h-inv"><h2 id="h-inv">Inversions</h2>
+      <p class="muted">An inversion keeps the same notes but puts a different one in the bass. This chord has ${invs.length} notes, so it has ${invs.length} positions.</p>
+      <div class="tabs" role="tablist" aria-label="Inversions">${tabs}</div>
+      <div id="invpanel" role="tabpanel" aria-labelledby="tab-${invIndex}">
+        <div class="inv-top">
+          <div><p class="sym sym-sm${fitClass(inv.symbol)}" role="heading" aria-level="3" aria-label="${esc(inv.symbol)}">${symHTML(chord, inv.index ? inv.bass.note : null)}</p>
+          <p class="inv-name">${inv.name}, ${noteName(inv.bass.note)} in the bass</p></div>
+          ${fig}
+        </div>
+        <p>${esc(inv.explain)}</p>
+        <h3>Bottom to top</h3>
+        <ul class="chain">${order}</ul>
+        <div class="piano-wrap">${pianoSVG(inv.pianoMidis)}</div>
+        <p class="cap">Closest position on the keyboard, lowest note first.</p>
+        <div class="guitar-head"><h3>On the guitar</h3>
+          <div class="seg" role="group" aria-label="Dot labels">
+            <button type="button" data-labels="interval" aria-pressed="${settings.labels === 'interval'}">Intervals</button>
+            <button type="button" data-labels="note" aria-pressed="${settings.labels === 'note'}">Notes</button>
+          </div>
+        </div>
+        <ul class="legend">${legend}</ul>
+        ${shapes}
+        ${inv.voicings.length ? '<p class="cap">Tap a shape to hear it. The ringed dot is the bass note. × means don’t play that string; a circle above the nut is an open string.</p>' : ''}
+      </div>
+    </section>`;
+  }
+
+  function shapeMeta(v) {
+    const bits = [];
+    if (v.barre) bits.push(`Barre at fret ${v.barre.fret}`);
+    if (v.omitted.length) bits.push('No ' + v.omitted.map(t => t.tok === '5' ? '5th' : pretty(t.tok)).join(', '));
+    if (!bits.length) bits.push(v.minF === 0 || v.notes.some(n => n.fret === 0) ? 'Uses open strings' : `${STRING_NAMES[v.bassString]}-string bass`);
+    return esc(bits.join('. '));
+  }
+
+  function aboutHTML(c) {
+    const opt = c.tones.filter(t => t.optional);
+    return `<section class="sec" aria-labelledby="h-about"><h2 id="h-about">Sound and use</h2>
+      <p>${esc(c.type.sound)}</p>
+      <p>${esc(c.type.use)}</p>
+      ${opt.length ? `<p class="muted">On guitar you can leave out the ${opt.map(t => t.tok === '5' ? '5th' : pretty(t.tok)).join(' and the ')} and the chord still reads clearly.</p>` : ''}
+    </section>`;
+  }
+
+  function keysHTML(c) {
+    const ks = keysFor(c);
+    if (!ks.length) {
+      return `<section class="sec" aria-labelledby="h-keys"><h2 id="h-keys">Keys it belongs to</h2>
+        <p>None of the major or minor scales contains all of these notes, so this chord always arrives as a chromatic, borrowed colour. That outside sound is a big part of its character.</p></section>`;
+    }
+    const group = (g, title) => {
+      const list = ks.filter(k => k.group === g);
+      if (!list.length) return '';
+      const shown = keysOpen ? list : list.slice(0, 6);
+      return `<h3>${title}</h3><ul class="keylist">${shown.map(k => `<li><b>${esc(k.roman)}</b> in ${esc(k.key)}</li>`).join('')}</ul>` +
+        (list.length > 6 && !keysOpen ? `<button type="button" class="more" data-action="morekeys">Show all ${list.length}</button>` : '');
+    };
+    return `<section class="sec" aria-labelledby="h-keys"><h2 id="h-keys">Keys it belongs to</h2>
+      <p class="muted">The roman numeral is the chord’s job in that key: I is home, V is the strongest pull back home.</p>
+      ${group('major', 'Major keys')}${group('minor', 'Minor keys')}</section>`;
+  }
+
+  function sameHTML(c) {
+    const same = sameNotes(c);
+    if (!same.length) return '';
+    return `<section class="sec" aria-labelledby="h-same"><h2 id="h-same">Same notes, different name</h2>
+      <p class="muted">${esc(c.symbol)} contains exactly the same notes as the chords below. Which name is right depends on the bass note and on what the music around it is doing.</p>
+      <ul class="chips">${same.map(s => `<li><button type="button" class="chip" data-load="${esc(s.id)}">${esc(s.symbol)}</button></li>`).join('')}</ul></section>`;
+  }
+
+  function recentHTML() {
+    const list = recent.filter(id => !chord || id !== chord.id).slice(0, 12);
+    if (!list.length) return '';
+    return `<section class="sec" aria-labelledby="h-recent"><h2 id="h-recent">Recent chords</h2>
+      <ul class="chips">${list.map(id => { const c = chordFromId(id); return `<li><button type="button" class="chip" data-load="${esc(id)}">${esc(c.symbol)}</button></li>`; }).join('')}</ul></section>`;
+  }
+
+  function renderDetails() {
+    $('#details').innerHTML = tonesHTML(chord) + invHTML() + aboutHTML(chord) + keysHTML(chord) + sameHTML(chord) + recentHTML();
+  }
+
+  function renderInv() {
+    const old = $('#h-inv');
+    if (!old) return renderDetails();
+    const sec = old.closest('section');
+    const tmp = document.createElement('div');
+    tmp.innerHTML = invHTML();
+    sec.replaceWith(tmp.firstElementChild);
+  }
+
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+  /* ---------- actions ---------- */
+  function show(c, { sound = false, animate = false } = {}) {
+    chord = c;
+    invs = inversions(c);
+    invIndex = 0; keysOpen = false;
+    recent = [c.id, ...recent.filter(id => id !== c.id)].slice(0, 20);
+    saveRecent();
+    renderHero(c);
+    renderDetails();
+    if (animate && !reduceMotion) {
+      const h = $('#hero'); h.classList.remove('landed'); void h.offsetWidth; h.classList.add('landed');
+    }
+    try { history.replaceState(null, '', '#' + c.id); } catch (e) { /* file:// or sandbox */ }
+    document.title = `${c.symbol}: Chord Roulette`;
+    if (sound) playInv(0, 0.03);
+  }
+  function toTop() { if (window.scrollY > 40) window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); }
+
+  function voicingMidis(v) { return v.notes.map(n => n.midi).sort((a, b) => a - b); }
+  function playInv(i, gap) {
+    const inv = invs[i];
+    if (!inv) return;
+    if (inv.voicings.length) Sound.play(voicingMidis(inv.voicings[0]), gap);
+    else Sound.play([inv.pianoMidis[0].midi - 12, ...inv.pianoMidis.map(p => p.midi)], gap);
+  }
+
+  let spinning = false;
+  function pick() {
+    if (spinning) return;
+    Sound.unlock();
+    const p = $('#pick');
+    p.classList.remove('flick'); void p.offsetWidth; p.classList.add('flick');
+    toTop();
+    let next = randomChord(settings);
+    for (let k = 0; k < 6 && chord && next.id === chord.id; k++) next = randomChord(settings);
+    if (reduceMotion) { show(next, { sound: settings.autoplay }); return; }
+    spinning = true;
+    if (!chord) $('#hero').innerHTML = '<h1 class="sym spinning"></h1>';
+    let sym = $('#hero .sym');
+    if (!sym) { $('#hero').innerHTML = '<h1 class="sym spinning"></h1>'; sym = $('#hero .sym'); }
+    sym.classList.add('spinning');
+    let n = 0;
+    const tick = () => {
+      if (n++ < 7) {
+        const c = randomChord(settings);
+        sym.className = 'sym spinning' + fitClass(c.symbol);
+        sym.innerHTML = symHTML(c);
+        setTimeout(tick, 42 + n * 6);
+      } else {
+        spinning = false;
+        show(next, { sound: settings.autoplay, animate: true });
+      }
+    };
+    tick();
+  }
+
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast.timer); toast.timer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  async function share() {
+    const url = location.href;
+    const data = { title: `${chord.symbol} on Chord Roulette`, url };
+    try {
+      if (navigator.share) { await navigator.share(data); return; }
+      await navigator.clipboard.writeText(url);
+      toast('Link copied');
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+      toast('Copy the address bar to share this chord');
+    }
+  }
+
+  /* ---------- options dialog ---------- */
+  function buildOptions() {
+    const counts = Object.fromEntries(FAMILIES.map(f => [f.key, TYPES.filter(t => t.fam === f.key)]));
+    $('#famList').innerHTML = '<legend>Chord types</legend>' + FAMILIES.map(f => `
+      <label class="check"><input type="checkbox" value="${f.key}" ${settings.families.includes(f.key) ? 'checked' : ''}>
+        <span>${esc(f.label)}<small>${counts[f.key].map(t => t.sym || 'major').map(esc).join(', ')}</small></span></label>`).join('');
+    $('#rootSelect').innerHTML = '<option value="">Any root</option>' + SIMPLE_PC.map((n, i) => `<option value="${i}" ${String(settings.rootPc) === String(i) ? 'selected' : ''}>${n}</option>`).join('');
+    $('#autoplay').checked = !!settings.autoplay;
+    $('#famHint').hidden = true;
+  }
+  $('#famList').addEventListener('change', e => {
+    const boxes = [...document.querySelectorAll('#famList input')];
+    const chosen = boxes.filter(b => b.checked).map(b => b.value);
+    if (!chosen.length) { e.target.checked = true; $('#famHint').hidden = false; return; }
+    $('#famHint').hidden = true;
+    settings.families = chosen; saveSettings();
+  });
+  $('#rootSelect').addEventListener('change', e => { settings.rootPc = e.target.value; saveSettings(); });
+  $('#autoplay').addEventListener('change', e => { settings.autoplay = e.target.checked; saveSettings(); });
+
+  /* ---------- events ---------- */
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-action], [data-inv], [data-load], [data-labels]');
+    if (!el) return;
+    if (el.dataset.inv != null) {
+      invIndex = Number(el.dataset.inv);
+      renderInv();
+      const tab = document.getElementById('tab-' + invIndex);
+      if (tab) tab.focus({ preventScroll: true });
+      return;
+    }
+    if (el.dataset.load) {
+      const c = chordFromId(el.dataset.load);
+      if (c) { Sound.unlock(); show(c, { sound: settings.autoplay, animate: true }); toTop(); }
+      return;
+    }
+    if (el.dataset.labels) {
+      settings.labels = el.dataset.labels; saveSettings(); renderInv(); return;
+    }
+    switch (el.dataset.action) {
+      case 'pick': pick(); break;
+      case 'strum': playInv(invIndex, 0.03); break;
+      case 'arp': playInv(invIndex, 0.22); break;
+      case 'share': share(); break;
+      case 'voicing': { const v = invs[invIndex].voicings[Number(el.dataset.v)]; if (v) Sound.play(voicingMidis(v), 0.03); break; }
+      case 'morekeys': {
+        keysOpen = true;
+        const sec = $('#h-keys').closest('section');
+        const tmp = document.createElement('div'); tmp.innerHTML = keysHTML(chord);
+        sec.replaceWith(tmp.firstElementChild);
+        break;
+      }
+      case 'options': buildOptions(); $('#options').showModal ? $('#options').showModal() : $('#options').setAttribute('open', ''); break;
+    }
+  });
+
+  // arrow keys move between inversion tabs
+  document.addEventListener('keydown', e => {
+    const tab = e.target.closest && e.target.closest('.tab');
+    if (tab && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+      e.preventDefault();
+      invIndex = (invIndex + (e.key === 'ArrowRight' ? 1 : -1) + invs.length) % invs.length;
+      renderInv();
+      document.getElementById('tab-' + invIndex).focus();
+      return;
+    }
+    if (e.code === 'Space' && !e.repeat && !$('#options').open) {
+      const tag = (e.target.tagName || '').toLowerCase();
+      if (['input', 'select', 'textarea', 'button', 'a'].includes(tag)) return;
+      e.preventDefault();
+      pick();
+    }
+  });
+
+  /* ---------- start ---------- */
+  const fromHash = chordFromId(decodeURIComponent(location.hash.slice(1)));
+  if (fromHash) show(fromHash);
+  else renderEmpty();
+})();
+
+</script>
+</body>
+</html>
